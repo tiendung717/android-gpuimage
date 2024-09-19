@@ -26,10 +26,11 @@ import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
+import android.os.Environment;/**/
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -62,6 +63,12 @@ public class GPUImageView extends FrameLayout {
     public final static int RENDERMODE_WHEN_DIRTY = 0;
     public final static int RENDERMODE_CONTINUOUSLY = 1;
 
+    private final LayoutParams surfaceViewLayoutParams = new LayoutParams(
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT,
+            Gravity.CENTER
+    );
+
     public GPUImageView(Context context) {
         super(context);
         init(context, null);
@@ -90,14 +97,49 @@ public class GPUImageView extends FrameLayout {
             surfaceView = new GPUImageGLSurfaceView(context, attrs);
             gpuImage.setGLSurfaceView((GLSurfaceView) surfaceView);
         }
-        addView(surfaceView);
+        addView(surfaceView, surfaceViewLayoutParams);
     }
 
+//    @Override
+//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+//        if (ratio != 0.0f) {
+//            int width = MeasureSpec.getSize(widthMeasureSpec);
+//            int height = MeasureSpec.getSize(heightMeasureSpec);
+//
+//            int newHeight;
+//            int newWidth;
+//            if (width / ratio < height) {
+//                newWidth = width;
+//                newHeight = Math.round(width / ratio);
+//            } else {
+//                newHeight = height;
+//                newWidth = Math.round(height * ratio);
+//            }
+//
+//            LayoutParams layoutParams = (LayoutParams) surfaceView.getLayoutParams();
+//            layoutParams.width = newWidth;
+//            layoutParams.height = newHeight;
+//            surfaceView.setLayoutParams(layoutParams);
+//
+//            Log.d("GPUImageView", "onMeasure: " + newWidth + "x" + newHeight);
+//
+////            int newWidthSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
+////            int newHeightSpec = MeasureSpec.makeMeasureSpec(newHeight, MeasureSpec.EXACTLY);
+////            super.onMeasure(newWidthSpec, newHeightSpec);
+//            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        } else {
+//            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        }
+//    }
+
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        refreshSurfaceViewSize(w, h);
+    }
+
+    private void refreshSurfaceViewSize(int width, int height) {
         if (ratio != 0.0f) {
-            int width = MeasureSpec.getSize(widthMeasureSpec);
-            int height = MeasureSpec.getSize(heightMeasureSpec);
 
             int newHeight;
             int newWidth;
@@ -109,11 +151,13 @@ public class GPUImageView extends FrameLayout {
                 newWidth = Math.round(height * ratio);
             }
 
-            int newWidthSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
-            int newHeightSpec = MeasureSpec.makeMeasureSpec(newHeight, MeasureSpec.EXACTLY);
-            super.onMeasure(newWidthSpec, newHeightSpec);
-        } else {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            LayoutParams layoutParams = (LayoutParams) surfaceView.getLayoutParams();
+            layoutParams.width = newWidth;
+            layoutParams.height = newHeight;
+            surfaceView.setLayoutParams(layoutParams);
+            requestLayout();
+
+            Log.d("GPUImageView", "onMeasure: " + newWidth + "x" + newHeight);
         }
     }
 
