@@ -52,7 +52,7 @@ import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_TEXTURE_VI
 
 public class GPUImageView extends FrameLayout {
 
-    private int surfaceType = SURFACE_TYPE_SURFACE_VIEW;
+    private int surfaceType = SURFACE_TYPE_TEXTURE_VIEW;
     private View surfaceView;
     private GPUImage gpuImage;
     private boolean isShowLoading = true;
@@ -100,46 +100,11 @@ public class GPUImageView extends FrameLayout {
         addView(surfaceView, surfaceViewLayoutParams);
     }
 
-//    @Override
-//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//        if (ratio != 0.0f) {
-//            int width = MeasureSpec.getSize(widthMeasureSpec);
-//            int height = MeasureSpec.getSize(heightMeasureSpec);
-//
-//            int newHeight;
-//            int newWidth;
-//            if (width / ratio < height) {
-//                newWidth = width;
-//                newHeight = Math.round(width / ratio);
-//            } else {
-//                newHeight = height;
-//                newWidth = Math.round(height * ratio);
-//            }
-//
-//            LayoutParams layoutParams = (LayoutParams) surfaceView.getLayoutParams();
-//            layoutParams.width = newWidth;
-//            layoutParams.height = newHeight;
-//            surfaceView.setLayoutParams(layoutParams);
-//
-//            Log.d("GPUImageView", "onMeasure: " + newWidth + "x" + newHeight);
-//
-////            int newWidthSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
-////            int newHeightSpec = MeasureSpec.makeMeasureSpec(newHeight, MeasureSpec.EXACTLY);
-////            super.onMeasure(newWidthSpec, newHeightSpec);
-//            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        } else {
-//            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        }
-//    }
-
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        refreshSurfaceViewSize(w, h);
-    }
-
-    private void refreshSurfaceViewSize(int width, int height) {
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (ratio != 0.0f) {
+            int width = MeasureSpec.getSize(widthMeasureSpec);
+            int height = MeasureSpec.getSize(heightMeasureSpec);
 
             int newHeight;
             int newWidth;
@@ -151,13 +116,11 @@ public class GPUImageView extends FrameLayout {
                 newWidth = Math.round(height * ratio);
             }
 
-            LayoutParams layoutParams = (LayoutParams) surfaceView.getLayoutParams();
-            layoutParams.width = newWidth;
-            layoutParams.height = newHeight;
-            surfaceView.setLayoutParams(layoutParams);
-            requestLayout();
-
-            Log.d("GPUImageView", "onMeasure: " + newWidth + "x" + newHeight);
+            int newWidthSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
+            int newHeightSpec = MeasureSpec.makeMeasureSpec(newHeight, MeasureSpec.EXACTLY);
+            super.onMeasure(newWidthSpec, newHeightSpec);
+        } else {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
     }
 
@@ -314,6 +277,18 @@ public class GPUImageView extends FrameLayout {
      */
     public void setImage(final File file) {
         gpuImage.setImage(file);
+    }
+
+    public boolean isFlipHorizontally() {
+        return gpuImage.getRenderer().isFlippedHorizontally();
+    }
+
+    public boolean isFlipVertically() {
+        return gpuImage.getRenderer().isFlippedVertically();
+    }
+
+    public Rotation getCurrentRotation() {
+        return gpuImage.getRenderer().getRotation();
     }
 
     public void requestRender() {
