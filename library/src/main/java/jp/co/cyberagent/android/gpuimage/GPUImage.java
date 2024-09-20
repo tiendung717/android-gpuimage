@@ -211,9 +211,15 @@ public class GPUImage {
      * @param filter the new filter
      */
     public void setFilter(final GPUImageFilter filter) {
+        setFilter(filter, true);
+    }
+
+    public void setFilter(final GPUImageFilter filter, boolean requestRender) {
         this.filter = filter;
         renderer.setFilter(this.filter);
-        requestRender();
+        if (requestRender){
+            requestRender();
+        }
     }
 
     /**
