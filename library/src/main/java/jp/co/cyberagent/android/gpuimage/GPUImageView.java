@@ -97,7 +97,7 @@ public class GPUImageView extends FrameLayout {
             surfaceView = new GPUImageGLSurfaceView(context, attrs);
             gpuImage.setGLSurfaceView((GLSurfaceView) surfaceView);
         }
-        addView(surfaceView, surfaceViewLayoutParams);
+        addView(surfaceView);
     }
 
     @Override
