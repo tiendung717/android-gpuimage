@@ -375,10 +375,18 @@ public class GPUImage {
         }
 
         GPUImageRenderer renderer = new GPUImageRenderer(filter);
-        renderer.setRotation(Rotation.NORMAL,
+        Rotation rotation = this.renderer.getRotation();
+        renderer.setRotation(rotation,
                 this.renderer.isFlippedHorizontally(), this.renderer.isFlippedVertically());
         renderer.setScaleType(scaleType);
-        PixelBuffer buffer = new PixelBuffer(bitmap.getWidth(), bitmap.getHeight());
+        PixelBuffer buffer;
+
+        if (rotation == Rotation.ROTATION_90 || rotation == Rotation.ROTATION_270) {
+            buffer = new PixelBuffer(bitmap.getHeight(), bitmap.getWidth());
+        } else {
+            buffer = new PixelBuffer(bitmap.getWidth(), bitmap.getHeight());
+        }
+
         buffer.setRenderer(renderer);
         renderer.setImageBitmap(bitmap, recycle);
         Bitmap result = buffer.getBitmap();
