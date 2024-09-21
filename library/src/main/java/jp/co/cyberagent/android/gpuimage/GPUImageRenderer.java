@@ -334,6 +334,16 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         adjustImageScaling();
     }
 
+    public void flipVertical(boolean enabled) {
+        flipVertical = enabled;
+        adjustImageScaling();
+    }
+
+    public void flipHorizontal(boolean enabled) {
+        flipHorizontal = enabled;
+        adjustImageScaling();
+    }
+
     public void setRotation(final Rotation rotation,
                             final boolean flipHorizontal, final boolean flipVertical) {
         this.flipHorizontal = flipHorizontal;
@@ -351,6 +361,20 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
 
     public boolean isFlippedVertically() {
         return flipVertical;
+    }
+
+    public void resetToOriginal() {
+        setRotation(Rotation.NORMAL, false, false);
+        updateTextureBuffer();
+        runOnDraw(() -> setFilter(new GPUImageFilter()));
+    }
+
+    private void updateTextureBuffer() {
+        runOnDraw(() -> {
+            float[] textureBuffer = TextureRotationUtil.getRotation(rotation, false, false);
+            glTextureBuffer.clear();
+            glTextureBuffer.put(textureBuffer).position(0);
+        }) ;
     }
 
     protected void runOnDraw(final Runnable runnable) {

@@ -217,7 +217,7 @@ public class GPUImage {
     public void setFilter(final GPUImageFilter filter, boolean requestRender) {
         this.filter = filter;
         renderer.setFilter(this.filter);
-        if (requestRender){
+        if (requestRender) {
             requestRender();
         }
     }
@@ -284,6 +284,14 @@ public class GPUImage {
      */
     public void setRotation(Rotation rotation, boolean flipHorizontal, boolean flipVertical) {
         renderer.setRotation(rotation, flipHorizontal, flipVertical);
+    }
+
+    public void flipHorizontal(boolean enable) {
+        renderer.flipHorizontal(enable);
+    }
+
+    public void flipVertical(boolean enable) {
+        renderer.flipVertical(enable);
     }
 
     /**
