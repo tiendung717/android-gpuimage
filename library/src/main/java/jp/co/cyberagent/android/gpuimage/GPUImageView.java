@@ -291,6 +291,10 @@ public class GPUImageView extends FrameLayout {
         return gpuImage.getRenderer().getRotation();
     }
 
+    public GPUImage.ScaleType getScaleType() {
+        return gpuImage.getRenderer().getScaleType();
+    }
+
     public void requestRender() {
         if (surfaceView instanceof GLSurfaceView) {
             ((GLSurfaceView) surfaceView).requestRender();

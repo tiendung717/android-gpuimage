@@ -355,6 +355,10 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         return rotation;
     }
 
+    public GPUImage.ScaleType getScaleType() {
+        return scaleType;
+    }
+
     public boolean isFlippedHorizontally() {
         return flipHorizontal;
     }
