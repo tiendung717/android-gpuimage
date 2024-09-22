@@ -265,7 +265,7 @@ public class GPUImage {
      * @return array with width and height of bitmap image
      */
     public int[] getScaleSize() {
-        return new int[] {scaleWidth, scaleHeight};
+        return new int[]{scaleWidth, scaleHeight};
     }
 
     /**
@@ -319,6 +319,10 @@ public class GPUImage {
      */
     public void setImage(final File file) {
         new LoadImageFileTask(this, file).execute();
+    }
+
+    public Bitmap getCurrentBitmap() {
+        return currentBitmap;
     }
 
     private String getPath(final Uri uri) {
@@ -447,6 +451,34 @@ public class GPUImage {
         buffer.destroy();
     }
 
+    public void captureSnapshot(final Bitmap bitmap, final ResponseListener<Bitmap> listener) {
+        GPUImageFilter rendererFilter = this.filter;
+        GPUImageRenderer renderer = new GPUImageRenderer(rendererFilter);
+        Rotation rotation = this.renderer.getRotation();
+        renderer.setRotation(
+                rotation,
+                this.renderer.isFlippedHorizontally(),
+                this.renderer.isFlippedVertically()
+        );
+        renderer.setScaleType(scaleType);
+        PixelBuffer buffer;
+        if (rotation == Rotation.ROTATION_90 || rotation == Rotation.ROTATION_270) {
+            buffer = new PixelBuffer(bitmap.getHeight(), bitmap.getWidth());
+        } else {
+            buffer = new PixelBuffer(bitmap.getWidth(), bitmap.getHeight());
+        }
+
+        buffer.setRenderer(renderer);
+        renderer.setImageBitmap(bitmap, false);
+
+        renderer.setFilter(rendererFilter);
+        listener.response(buffer.getBitmap());
+        rendererFilter.destroy();
+
+        renderer.deleteImage();
+        buffer.destroy();
+    }
+
     /**
      * Save current image with applied filter to Pictures. It will be stored on
      * the default Picture folder on the phone below the given folderName and
@@ -513,6 +545,10 @@ public class GPUImage {
             Display display = windowManager.getDefaultDisplay();
             return display.getHeight();
         }
+    }
+
+    public void takeSnapshot(ResponseListener<Bitmap> bitmapResponseListener) {
+        captureSnapshot(currentBitmap, bitmapResponseListener);
     }
 
     @Deprecated
