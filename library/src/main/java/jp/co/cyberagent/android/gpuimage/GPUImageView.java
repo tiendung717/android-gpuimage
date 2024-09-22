@@ -30,7 +30,6 @@ import android.os.Environment;/**/
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -40,14 +39,14 @@ import android.widget.ProgressBar;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter;
 import jp.co.cyberagent.android.gpuimage.util.Rotation;
-import jp.co.cyberagent.android.gpuimage.R;
 
 
-import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_SURFACE_VIEW;
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_TEXTURE_VIEW;
 
 public class GPUImageView extends FrameLayout {
@@ -63,6 +62,8 @@ public class GPUImageView extends FrameLayout {
     public final static int RENDERMODE_WHEN_DIRTY = 0;
     public final static int RENDERMODE_CONTINUOUSLY = 1;
 
+    private ExecutorService backgroundExecutorService = Executors.newSingleThreadExecutor();
+
     private final LayoutParams surfaceViewLayoutParams = new LayoutParams(
             LayoutParams.WRAP_CONTENT,
             LayoutParams.WRAP_CONTENT,
@@ -77,6 +78,10 @@ public class GPUImageView extends FrameLayout {
     public GPUImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
+    }
+
+    public void backgroundExecute(Runnable runnable){
+        backgroundExecutorService.execute(runnable);
     }
 
     private void init(Context context, AttributeSet attrs) {
