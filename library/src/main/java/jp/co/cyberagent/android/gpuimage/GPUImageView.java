@@ -28,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;/**/
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -49,6 +50,8 @@ import jp.co.cyberagent.android.gpuimage.util.Rotation;
 
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_TEXTURE_VIEW;
 
+import com.google.android.material.progressindicator.CircularProgressIndicator;
+
 public class GPUImageView extends FrameLayout {
 
     private int surfaceType = SURFACE_TYPE_TEXTURE_VIEW;
@@ -62,13 +65,8 @@ public class GPUImageView extends FrameLayout {
     public final static int RENDERMODE_WHEN_DIRTY = 0;
     public final static int RENDERMODE_CONTINUOUSLY = 1;
 
-    private ExecutorService backgroundExecutorService = Executors.newSingleThreadExecutor();
-
-    private final LayoutParams surfaceViewLayoutParams = new LayoutParams(
-            LayoutParams.WRAP_CONTENT,
-            LayoutParams.WRAP_CONTENT,
-            Gravity.CENTER
-    );
+    private final HandlerThread handlerThread = new HandlerThread("GPUImageView");
+    private Handler handler;
 
     public GPUImageView(Context context) {
         super(context);
@@ -78,10 +76,6 @@ public class GPUImageView extends FrameLayout {
     public GPUImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
-    }
-
-    public void backgroundExecute(Runnable runnable){
-        backgroundExecutorService.execute(runnable);
     }
 
     private void init(Context context, AttributeSet attrs) {
@@ -103,6 +97,10 @@ public class GPUImageView extends FrameLayout {
             gpuImage.setGLSurfaceView((GLSurfaceView) surfaceView);
         }
         addView(surfaceView);
+
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
+
     }
 
     @Override
@@ -127,6 +125,10 @@ public class GPUImageView extends FrameLayout {
         } else {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
+    }
+
+    public void runOnBackground(Runnable runnable) {
+        handler.post(runnable);
     }
 
     /**
@@ -264,6 +266,10 @@ public class GPUImageView extends FrameLayout {
      */
     public void setImage(final Bitmap bitmap) {
         gpuImage.setImage(bitmap);
+    }
+
+    public void setImage(final Bitmap bitmap, boolean requestRender) {
+        gpuImage.setImage(bitmap, requestRender);
     }
 
     /**

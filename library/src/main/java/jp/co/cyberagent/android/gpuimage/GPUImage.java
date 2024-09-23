@@ -228,9 +228,15 @@ public class GPUImage {
      * @param bitmap the new image
      */
     public void setImage(final Bitmap bitmap) {
+        setImage(bitmap, true);
+    }
+
+    public void setImage(final Bitmap bitmap, boolean requestRender) {
         currentBitmap = bitmap;
         renderer.setImageBitmap(bitmap, false);
-        requestRender();
+        if (requestRender) {
+            requestRender();
+        }
     }
 
     /**
