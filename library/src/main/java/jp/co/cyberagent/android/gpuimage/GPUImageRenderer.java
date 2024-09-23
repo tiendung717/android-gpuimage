@@ -367,20 +367,6 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         return flipVertical;
     }
 
-    public void resetToOriginal() {
-        setRotation(Rotation.NORMAL, false, false);
-        updateTextureBuffer();
-        runOnDraw(() -> setFilter(new GPUImageFilter()));
-    }
-
-    private void updateTextureBuffer() {
-        runOnDraw(() -> {
-            float[] textureBuffer = TextureRotationUtil.getRotation(rotation, false, false);
-            glTextureBuffer.clear();
-            glTextureBuffer.put(textureBuffer).position(0);
-        }) ;
-    }
-
     protected void runOnDraw(final Runnable runnable) {
         synchronized (runOnDraw) {
             runOnDraw.add(runnable);

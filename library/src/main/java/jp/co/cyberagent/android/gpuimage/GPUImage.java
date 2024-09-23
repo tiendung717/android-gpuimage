@@ -228,15 +228,15 @@ public class GPUImage {
      * @param bitmap the new image
      */
     public void setImage(final Bitmap bitmap) {
-        setImage(bitmap, true);
-    }
-
-    public void setImage(final Bitmap bitmap, boolean requestRender) {
         currentBitmap = bitmap;
         renderer.setImageBitmap(bitmap, false);
-        if (requestRender) {
-            requestRender();
-        }
+        requestRender();
+    }
+
+    public void setNewImage(final Bitmap bitmap) {
+        setRotation(Rotation.NORMAL, false, false);
+        setFilter(new GPUImageFilter(), false);
+        setImage(bitmap);
     }
 
     /**
@@ -553,8 +553,8 @@ public class GPUImage {
         }
     }
 
-    public void takeSnapshot(ResponseListener<Bitmap> bitmapResponseListener) {
-        captureSnapshot(currentBitmap, bitmapResponseListener);
+    public void takeSnapshot() {
+        captureSnapshot(currentBitmap, this::setNewImage);
     }
 
     @Deprecated

@@ -40,8 +40,6 @@ import android.widget.ProgressBar;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter;
@@ -49,8 +47,6 @@ import jp.co.cyberagent.android.gpuimage.util.Rotation;
 
 
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_TEXTURE_VIEW;
-
-import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 public class GPUImageView extends FrameLayout {
 
@@ -268,8 +264,12 @@ public class GPUImageView extends FrameLayout {
         gpuImage.setImage(bitmap);
     }
 
-    public void setImage(final Bitmap bitmap, boolean requestRender) {
-        gpuImage.setImage(bitmap, requestRender);
+    /**
+     * Sets new image to renderer and reset transformation & filter
+     * @param bitmap the new image
+     */
+    public void setNewImage(final Bitmap bitmap) {
+        gpuImage.setNewImage(bitmap);
     }
 
     /**
