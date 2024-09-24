@@ -64,6 +64,8 @@ public class GPUImageView extends FrameLayout {
     private final HandlerThread handlerThread = new HandlerThread("GPUImageView");
     private Handler handler;
 
+    private OnLoadingStateChangeListener onLoadingStateChangeListener;
+
     public GPUImageView(Context context) {
         super(context);
         init(context, null);
@@ -125,6 +127,26 @@ public class GPUImageView extends FrameLayout {
 
     public void runOnBackground(Runnable runnable) {
         handler.post(runnable);
+    }
+
+    public void setOnLoadingStateChangeListener(OnLoadingStateChangeListener onLoadingStateChangeListener) {
+        this.onLoadingStateChangeListener = onLoadingStateChangeListener;
+    }
+
+    public void notifyLoadingStarted() {
+        if (onLoadingStateChangeListener != null) {
+            onLoadingStateChangeListener.onLoadingStarted();
+        }
+    }
+
+    public void notifyLoadingFinished() {
+        if (onLoadingStateChangeListener != null) {
+            onLoadingStateChangeListener.onLoadingFinished();
+        }
+    }
+
+    public void takeSnapshot() {
+        gpuImage.takeSnapshot();
     }
 
     /**
