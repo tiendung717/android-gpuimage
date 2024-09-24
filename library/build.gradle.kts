@@ -3,10 +3,11 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
+//    alias(libs.plugins.compose.compiler)
 }
 
 val buildSdkVersion: Int by rootProject.extra
-val composeCompilerVersion: String by rootProject.extra
+//val composeCompilerVersion: String by rootProject.extra
 val minimumSdkVersion: Int by rootProject.extra
 
 android {
@@ -51,4 +52,5 @@ android {
 dependencies {
     // AndroidX
     implementation(libs.bundles.androidx)
+    implementation("com.vanniktech:android-image-cropper:4.6.0")
 }

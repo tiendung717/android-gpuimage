@@ -44,9 +44,12 @@ import java.util.concurrent.Semaphore;
 
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter;
 import jp.co.cyberagent.android.gpuimage.util.Rotation;
+import kotlin.Pair;
 
 
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_TEXTURE_VIEW;
+
+import com.canhub.cropper.CropImageView;
 
 public class GPUImageView extends FrameLayout {
 
@@ -63,6 +66,8 @@ public class GPUImageView extends FrameLayout {
 
     private final HandlerThread handlerThread = new HandlerThread("GPUImageView");
     private Handler handler;
+    private CropImageView cropImageView;
+
 
     private OnLoadingStateChangeListener onLoadingStateChangeListener;
 
@@ -74,6 +79,34 @@ public class GPUImageView extends FrameLayout {
     public GPUImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
+    }
+
+    public void showCropImageView(){
+        if (cropImageView == null){
+            cropImageView = new CropImageView(getContext());
+            cropImageView.setAutoZoomEnabled(false);
+            cropImageView.setImageBitmap(gpuImage.getCurrentBitmap());
+            addView(cropImageView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        }
+    }
+
+    public void setAspectRatio(Pair<Integer, Integer> ratio){
+        if (ratio != null){
+            if (ratio.getFirst() > 0 && ratio.getSecond() > 0){
+                cropImageView.setAspectRatio(ratio.getFirst(), ratio.getSecond());
+            } else {
+                cropImageView.setAspectRatio(gpuImage.getCurrentBitmap().getWidth(), gpuImage.getCurrentBitmap().getHeight());
+            }
+        } else {
+            cropImageView.clearAspectRatio();
+        }
+    }
+
+    public void hideCropImageView(){
+        if (cropImageView != null){
+            removeView(cropImageView);
+            cropImageView = null;
+        }
     }
 
     private void init(Context context, AttributeSet attrs) {
@@ -99,6 +132,15 @@ public class GPUImageView extends FrameLayout {
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
 
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (cropImageView != null) {
+            LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+            cropImageView.setLayoutParams(layoutParams);
+        }
     }
 
     @Override
@@ -147,6 +189,13 @@ public class GPUImageView extends FrameLayout {
 
     public void takeSnapshot() {
         gpuImage.takeSnapshot();
+    }
+    public boolean isCropping() {
+        return cropImageView != null;
+    }
+
+    public Bitmap getCropBitmap(){
+        return cropImageView.getCroppedImage();
     }
 
     /**
