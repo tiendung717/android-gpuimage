@@ -31,8 +31,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -60,6 +62,11 @@ public class GPUImageView extends FrameLayout {
     private GPUImageFilter filter;
     public Size forceSize = null;
     private float ratio = 0.0f;
+    private Bitmap bitmap;
+    private Rotation rotation = Rotation.NORMAL;
+
+    private int imageWidth;
+    private int imageHeight;
 
     public final static int RENDERMODE_WHEN_DIRTY = 0;
     public final static int RENDERMODE_CONTINUOUSLY = 1;
@@ -121,10 +128,10 @@ public class GPUImageView extends FrameLayout {
         }
         gpuImage = new GPUImage(context);
         if (surfaceType == SURFACE_TYPE_TEXTURE_VIEW) {
-            surfaceView = new GPUImageGLTextureView(context, attrs);
+            surfaceView = new GLTextureView(context, attrs);
             gpuImage.setGLTextureView((GLTextureView) surfaceView);
         } else {
-            surfaceView = new GPUImageGLSurfaceView(context, attrs);
+            surfaceView = new GLSurfaceView(context, attrs);
             gpuImage.setGLSurfaceView((GLSurfaceView) surfaceView);
         }
         addView(surfaceView);
@@ -280,12 +287,6 @@ public class GPUImageView extends FrameLayout {
         }
     }
 
-    // TODO Should be an xml attribute. But then GPUImage can not be distributed as .jar anymore.
-    public void setRatio(float ratio) {
-        this.ratio = ratio;
-        surfaceView.requestLayout();
-        gpuImage.deleteImage();
-    }
 
     /**
      * Set the scale type of GPUImage.
@@ -303,7 +304,9 @@ public class GPUImageView extends FrameLayout {
      */
     public void setRotation(Rotation rotation) {
         gpuImage.setRotation(rotation);
+        this.rotation = rotation;
         requestRender();
+        refreshSurfaceSize();
     }
 
     /**
@@ -332,7 +335,12 @@ public class GPUImageView extends FrameLayout {
      * @param bitmap the new image
      */
     public void setImage(final Bitmap bitmap) {
+        this.bitmap = bitmap;
+        rotation = Rotation.NORMAL;
+        imageWidth = bitmap.getWidth();
+        imageHeight = bitmap.getHeight();
         gpuImage.setImage(bitmap);
+        refreshSurfaceSize();
     }
 
     /**
@@ -340,7 +348,12 @@ public class GPUImageView extends FrameLayout {
      * @param bitmap the new image
      */
     public void setNewImage(final Bitmap bitmap) {
+        this.bitmap = bitmap;
+        rotation = Rotation.NORMAL;
+        imageWidth = bitmap.getWidth();
+        imageHeight = bitmap.getHeight();
         gpuImage.setNewImage(bitmap);
+        refreshSurfaceSize();
     }
 
     /**
@@ -548,6 +561,15 @@ public class GPUImageView extends FrameLayout {
         }
     }
 
+    private void refreshSurfaceSize() {
+        if (rotation == Rotation.ROTATION_90 || rotation == Rotation.ROTATION_270) {
+            ratio = imageHeight * 1.0f / imageWidth;
+        } else {
+            ratio = imageWidth * 1.0f / imageHeight;
+        }
+        surfaceView.requestLayout();
+    }
+
     public static class Size {
         int width;
         int height;
@@ -555,46 +577,6 @@ public class GPUImageView extends FrameLayout {
         public Size(int width, int height) {
             this.width = width;
             this.height = height;
-        }
-    }
-
-    private class GPUImageGLSurfaceView extends GLSurfaceView {
-        public GPUImageGLSurfaceView(Context context) {
-            super(context);
-        }
-
-        public GPUImageGLSurfaceView(Context context, AttributeSet attrs) {
-            super(context, attrs);
-        }
-
-        @Override
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            if (forceSize != null) {
-                super.onMeasure(MeasureSpec.makeMeasureSpec(forceSize.width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(forceSize.height, MeasureSpec.EXACTLY));
-            } else {
-                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-            }
-        }
-    }
-
-    private class GPUImageGLTextureView extends GLTextureView {
-        public GPUImageGLTextureView(Context context) {
-            super(context);
-        }
-
-        public GPUImageGLTextureView(Context context, AttributeSet attrs) {
-            super(context, attrs);
-        }
-
-        @Override
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            if (forceSize != null) {
-                super.onMeasure(MeasureSpec.makeMeasureSpec(forceSize.width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(forceSize.height, MeasureSpec.EXACTLY));
-            } else {
-                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-            }
         }
     }
 
