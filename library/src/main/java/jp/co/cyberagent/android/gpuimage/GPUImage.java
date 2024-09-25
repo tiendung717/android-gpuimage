@@ -259,7 +259,6 @@ public class GPUImage {
     public void setScaleType(ScaleType scaleType) {
         this.scaleType = scaleType;
         renderer.setScaleType(scaleType);
-        renderer.deleteImage();
         currentBitmap = null;
         requestRender();
     }
@@ -705,13 +704,13 @@ public class GPUImage {
         @Override
         protected Bitmap doInBackground(Void... params) {
             if (renderer != null && renderer.getFrameWidth() == 0) {
-                try {
-                    synchronized (renderer.surfaceChangedWaiter) {
-                        renderer.surfaceChangedWaiter.wait(3000);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    synchronized (renderer.surfaceChangedWaiter) {
+//                        renderer.surfaceChangedWaiter.wait(3000);
+//                    }
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             }
             outputWidth = getOutputWidth();
             outputHeight = getOutputHeight();

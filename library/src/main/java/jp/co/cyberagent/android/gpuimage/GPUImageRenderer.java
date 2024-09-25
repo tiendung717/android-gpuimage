@@ -24,6 +24,8 @@ import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
+import android.util.Log;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -53,8 +55,6 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     };
 
     private GPUImageFilter filter;
-
-    public final Object surfaceChangedWaiter = new Object();
 
     private int glTextureId = NO_IMAGE;
     private SurfaceTexture surfaceTexture = null;
@@ -100,6 +100,10 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         GLES20.glClearColor(backgroundRed, backgroundGreen, backgroundBlue, 1);
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         filter.ifNeedInit();
+
+        int textures[] = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        glTextureId = textures[0];
     }
 
     @Override
@@ -109,10 +113,10 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         GLES20.glViewport(0, 0, width, height);
         GLES20.glUseProgram(filter.getProgram());
         filter.onOutputSizeChanged(width, height);
-        adjustImageScaling();
-        synchronized (surfaceChangedWaiter) {
-            surfaceChangedWaiter.notifyAll();
-        }
+//        adjustImageScaling();
+//        synchronized (surfaceChangedWaiter) {
+//            surfaceChangedWaiter.notifyAll();
+//        }
     }
 
     @Override
@@ -121,9 +125,9 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         runAll(runOnDraw);
         filter.onDraw(glTextureId, glCubeBuffer, glTextureBuffer);
         runAll(runOnDrawEnd);
-        if (surfaceTexture != null) {
-            surfaceTexture.updateTexImage();
-        }
+//        if (surfaceTexture != null) {
+//            surfaceTexture.updateTexImage();
+//        }
     }
 
     /**
@@ -167,7 +171,7 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
                     if (imageWidth != width) {
                         imageWidth = width;
                         imageHeight = height;
-                        adjustImageScaling();
+//                        adjustImageScaling();
                     }
                 }
             });
@@ -210,16 +214,16 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     }
 
     public void deleteImage() {
-        runOnDraw(new Runnable() {
-
-            @Override
-            public void run() {
-                GLES20.glDeleteTextures(1, new int[]{
-                        glTextureId
-                }, 0);
-                glTextureId = NO_IMAGE;
-            }
-        });
+//        runOnDraw(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                GLES20.glDeleteTextures(1, new int[]{
+//                        glTextureId
+//                }, 0);
+//                glTextureId = NO_IMAGE;
+//            }
+//        });
     }
 
     public void setImageBitmap(final Bitmap bitmap) {
@@ -248,14 +252,30 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
                     addedPadding = 0;
                 }
 
-                glTextureId = OpenGlUtils.loadTexture(
-                        resizedBitmap != null ? resizedBitmap : bitmap, glTextureId, recycle);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, glTextureId);
+                GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0,  resizedBitmap != null ? resizedBitmap : bitmap, 0);
+                GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D,
+                        GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR
+                );
+                GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D,
+                        GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR
+                );
+                GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
+                        GLES20.GL_CLAMP_TO_EDGE
+                );
+                GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
+                        GLES20.GL_CLAMP_TO_EDGE
+                );
+
                 if (resizedBitmap != null) {
                     resizedBitmap.recycle();
                 }
                 imageWidth = bitmap.getWidth();
                 imageHeight = bitmap.getHeight();
-                adjustImageScaling();
             }
         });
     }
@@ -272,52 +292,16 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         return outputHeight;
     }
 
-    private void adjustImageScaling() {
-        float outputWidth = this.outputWidth;
-        float outputHeight = this.outputHeight;
-        if (rotation == Rotation.ROTATION_270 || rotation == Rotation.ROTATION_90) {
-            outputWidth = this.outputHeight;
-            outputHeight = this.outputWidth;
-        }
-
-        float ratio1 = outputWidth / imageWidth;
-        float ratio2 = outputHeight / imageHeight;
-        float ratioMax = Math.max(ratio1, ratio2);
-        int imageWidthNew = Math.round(imageWidth * ratioMax);
-        int imageHeightNew = Math.round(imageHeight * ratioMax);
-
-        float ratioWidth = imageWidthNew / outputWidth;
-        float ratioHeight = imageHeightNew / outputHeight;
-
-        float[] cube = CUBE;
-        float[] textureCords = TextureRotationUtil.getRotation(rotation, flipHorizontal, flipVertical);
-        if (scaleType == GPUImage.ScaleType.CENTER_CROP) {
-            float distHorizontal = (1 - 1 / ratioWidth) / 2;
-            float distVertical = (1 - 1 / ratioHeight) / 2;
-            textureCords = new float[]{
-                    addDistance(textureCords[0], distHorizontal), addDistance(textureCords[1], distVertical),
-                    addDistance(textureCords[2], distHorizontal), addDistance(textureCords[3], distVertical),
-                    addDistance(textureCords[4], distHorizontal), addDistance(textureCords[5], distVertical),
-                    addDistance(textureCords[6], distHorizontal), addDistance(textureCords[7], distVertical),
-            };
-        } else {
-            if (rotation == Rotation.ROTATION_270 || rotation == Rotation.ROTATION_90) {
-                ratioWidth  = ratioWidth + ratioHeight;
-                ratioHeight = ratioWidth - ratioHeight;
-                ratioWidth  = ratioWidth - ratioHeight;
+    void updateTransform(){
+        runOnDraw(new Runnable() {
+            @Override
+            public void run() {
+                float[] textureBuffer =
+                        TextureRotationUtil.getRotation(rotation, flipHorizontal, flipVertical);
+                glTextureBuffer.clear();
+                glTextureBuffer.put(textureBuffer).position(0);
             }
-            cube = new float[]{
-                    CUBE[0] / ratioHeight, CUBE[1] / ratioWidth,
-                    CUBE[2] / ratioHeight, CUBE[3] / ratioWidth,
-                    CUBE[4] / ratioHeight, CUBE[5] / ratioWidth,
-                    CUBE[6] / ratioHeight, CUBE[7] / ratioWidth,
-            };
-        }
-
-        glCubeBuffer.clear();
-        glCubeBuffer.put(cube).position(0);
-        glTextureBuffer.clear();
-        glTextureBuffer.put(textureCords).position(0);
+        });
     }
 
     private float addDistance(float coordinate, float distance) {
@@ -331,24 +315,25 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
 
     public void setRotation(final Rotation rotation) {
         this.rotation = rotation;
-        adjustImageScaling();
+        updateTransform();
     }
 
     public void flipVertical(boolean enabled) {
         flipVertical = enabled;
-        adjustImageScaling();
+        updateTransform();
     }
 
     public void flipHorizontal(boolean enabled) {
         flipHorizontal = enabled;
-        adjustImageScaling();
+        updateTransform();
     }
 
     public void setRotation(final Rotation rotation,
                             final boolean flipHorizontal, final boolean flipVertical) {
+        this.rotation = rotation;
         this.flipHorizontal = flipHorizontal;
         this.flipVertical = flipVertical;
-        setRotation(rotation);
+        updateTransform();
     }
 
     public Rotation getRotation() {
