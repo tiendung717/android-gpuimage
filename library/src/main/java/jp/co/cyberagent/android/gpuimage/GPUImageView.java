@@ -340,6 +340,7 @@ public class GPUImageView extends FrameLayout {
      * @param bitmap the new image
      */
     public void setNewImage(final Bitmap bitmap) {
+        setRatio((float) bitmap.getWidth() / bitmap.getHeight());
         gpuImage.setNewImage(bitmap);
     }
 
