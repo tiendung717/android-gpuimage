@@ -77,6 +77,7 @@ public class GPUImageView extends FrameLayout {
 
 
     private OnLoadingStateChangeListener onLoadingStateChangeListener;
+    private OnSnapshotCaptureListener onSnapshotCaptureListener;
 
     public GPUImageView(Context context) {
         super(context);
@@ -182,6 +183,10 @@ public class GPUImageView extends FrameLayout {
         this.onLoadingStateChangeListener = onLoadingStateChangeListener;
     }
 
+    public void setOnSnapshotCaptureListener(OnSnapshotCaptureListener onSnapshotCaptureListener) {
+        this.onSnapshotCaptureListener = onSnapshotCaptureListener;
+    }
+
     public void notifyLoadingStarted() {
         if (onLoadingStateChangeListener != null) {
             onLoadingStateChangeListener.onLoadingStarted();
@@ -191,6 +196,12 @@ public class GPUImageView extends FrameLayout {
     public void notifyLoadingFinished() {
         if (onLoadingStateChangeListener != null) {
             onLoadingStateChangeListener.onLoadingFinished();
+        }
+    }
+
+    public void notifySnapshotCaptured(Bitmap snapshotBitmap) {
+        if (onSnapshotCaptureListener != null) {
+            onSnapshotCaptureListener.onSnapshotCaptured(snapshotBitmap);
         }
     }
 
