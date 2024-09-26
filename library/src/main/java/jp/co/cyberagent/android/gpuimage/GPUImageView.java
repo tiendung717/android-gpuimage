@@ -31,10 +31,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -77,6 +75,7 @@ public class GPUImageView extends FrameLayout {
 
 
     private OnLoadingStateChangeListener onLoadingStateChangeListener;
+    private OnSnapshotCaptureListener onSnapshotCaptureListener;
 
     public GPUImageView(Context context) {
         super(context);
@@ -182,6 +181,10 @@ public class GPUImageView extends FrameLayout {
         this.onLoadingStateChangeListener = onLoadingStateChangeListener;
     }
 
+    public void setOnSnapshotCaptureListener(OnSnapshotCaptureListener onSnapshotCaptureListener) {
+        this.onSnapshotCaptureListener = onSnapshotCaptureListener;
+    }
+
     public void notifyLoadingStarted() {
         if (onLoadingStateChangeListener != null) {
             onLoadingStateChangeListener.onLoadingStarted();
@@ -191,6 +194,12 @@ public class GPUImageView extends FrameLayout {
     public void notifyLoadingFinished() {
         if (onLoadingStateChangeListener != null) {
             onLoadingStateChangeListener.onLoadingFinished();
+        }
+    }
+
+    public void notifySnapshotCaptured(Bitmap snapshotBitmap) {
+        if (onSnapshotCaptureListener != null) {
+            onSnapshotCaptureListener.onSnapshotCaptured(snapshotBitmap);
         }
     }
 
